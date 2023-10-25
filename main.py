@@ -13,8 +13,7 @@ H = [i for i in range(1, h)]
 
 # PARAMS
 
-# Vehículos
-
+# VEHÍCULOS
 # Emisión co2 vehículo v
 rho = {}
 
@@ -43,8 +42,7 @@ S = 50
 R = 30
 
 
-# Carga
-
+# CARGA
 # Cantidad de elementos a transportar
 L = 1000
 
@@ -58,8 +56,7 @@ o = {}
 p = {}
 
 
-# Otros
-
+# OTROS
 # Kilómetros en trayecto t
 k = {}
 
@@ -88,9 +85,34 @@ m.addConstrs((quicksum(g[h,v,t]*p) for h in H + quicksum(i[v,c,t]*o) for c in C 
 # La cantidad de vehículos v usados en el trayecto t no debe superar la cantidad disponible de vehículos
 m.addContrs((quicksum(x[v,t])for v in V <= cantidadmaxdevehiculos for t in T), name="R2") #cantidadmaxdevehiculos HAY QUE DEF
 
-#El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
-m.addConstrs(0.5 * M[v] <= quicksum(g[])) 
-
+# El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
+m.addConstrs((0.5 * M[v] <= quicksum(g[h,v,t]*p) for h in H + quicksum(i[v,c,t]*o) for c in C for v in V), name="R3") 
 
 # Los costos de transporte del tour no deben superar el presupuesto para transporte
 m.addConstrs((quicksum(quicksum(x[v,t]*k) for t in T * (1/epsilon) * (S*B*R*D)) for v in V <= T), name="R4")
+
+# Los costos de sueldos no deben superar el presupuesto de salario
+m.addConstrs((quicksum(quicksum(x[v,t]*omega) for t in T) for v in V <= Q), name="R5")
+
+# Los gastos totales deben ser menores o igules al presupuesto final
+m.addConstrs((quicksum(quicksum(x[v,t]*omega) for t in T) for v in V + quicksum(quicksum(x[v,t]*k) for t in T * (1/epsilon) * (S*B*R*D)) for v in V <= U), name="R6")
+
+# En cada trayecto se deben transportar todos los elementos 
+m.addConstrs((quicksum(quicksum(i[v,c,t]) for c in C) for v in V <= L for t in T), name="R7")
+m.addConstrs((quicksum(quicksum(i[v,c,t]) for c in C) for v in V >= L for t in T), name="R8")
+
+# En cada trayecto se deben transportar todas las personas
+m.addConstrs((quicksum(quicksum(g[h,v,t])for h in H) for v in V <= H), name="R9")
+m.addConstrs((quicksum(quicksum(g[h,v,t])for h in H) for v in V >= H), name="R9")
+
+
+m.update()
+
+# FUNCIÓN OBJETIVO
+
+f_objetivo = (quicksum(quicksum(x[v, t] * k * (quicksum(i[v, c, t] * o for c in C)) + W for t in T) * rho for v in V))
+m.setObjective(f_objetivo, GRB.MINIMIZE)
+m.Params.timeLimit = 1200
+
+m.optimize()
+m.printStats()
