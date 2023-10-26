@@ -11,7 +11,7 @@ H = [i for i in range(1, 4)]
 
 # PARAMS
 # TODO: editar cantidadmaxdevehiculos
-cantidadmaxdevehiculos = 800
+cantidadmaxdevehiculos = 7
 
 # VEHÍCULOS
 # Emisión co2 vehículo v
@@ -80,22 +80,22 @@ m.update()
 
 # RESTRICCIONES
 # El peso de la carga del vehículo v no debe superar el máximo permitido
-m.addConstrs(quicksum(quicksum((quicksum(g[h,v,t]*p for h in H) + quicksum(i[v,c,t]*o for c in C <= M) for v in V) for t in T)), name="R1")
+m.addConstrs(quicksum(quicksum((quicksum(g[h,v,t]*p[h] for h in H) + quicksum(i[v,c,t]*o[c] for c in C <= M[v]) for v in V) for t in T)), name="R1")
 
 # La cantidad de vehículos v usados en el trayecto t no debe superar la cantidad disponible de vehículos
 m.addContrs((quicksum(x[v,t])for v in V <= cantidadmaxdevehiculos for t in T), name="R2") #cantidadmaxdevehiculos HAY QUE DEF
 
 # El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
-m.addConstrs(quicksum(quicksum((0.5 * M <= quicksum(g[h,v,t]*p for h in H) + quicksum(i[v,c,t]*o for c in C) for v in V) for t in T)), name="R3") 
+m.addConstrs(quicksum(quicksum((0.5 * M[v] <= quicksum(g[h,v,t]*p[h] for h in H) + quicksum(i[v,c,t]*o[c] for c in C) for v in V) for t in T)), name="R3") 
 
 # Los costos de transporte del tour no deben superar el presupuesto para transporte
-m.addConstrs((quicksum(quicksum(x[v,t]*k for t in T) * (1/epsilon) * (S * B * R * D)) for v in V <= T), name="R4")
+m.addConstrs((quicksum(quicksum(x[v,t]*k[t] for t in T) * (1/epsilon[v]) * (S * B[v] + R * D[v])) for v in V <= T), name="R4")
 
 # Los costos de sueldos no deben superar el presupuesto de salario
-m.addConstrs((quicksum(quicksum(x[v,t]*omega for t in T) for v in V) <= Q), name="R5")
+m.addConstrs((quicksum(quicksum(x[v,t]*omega[v] for t in T) for v in V) <= Q), name="R5")
 
 # Los gastos totales deben ser menores o igules al presupuesto final
-m.addConstrs((quicksum(quicksum(x[v,t]*omega for t in T)for v in V) + quicksum(quicksum(x[v,t]*k for t in T) * (1/epsilon) * (S * B * R * D) for v in V) <= U), name="R6")
+m.addConstrs((quicksum(quicksum(x[v,t]*omega[v] for t in T)for v in V) + quicksum(quicksum(x[v,t]*k[t] for t in T) * (1/epsilon) * (S * B[v] + R * D[v]) for v in V) <= U), name="R6")
 
 # En cada trayecto se deben transportar todos los elementos 
 m.addConstrs((quicksum(quicksum(i[v,c,t] for c in C) for v in V) <= L for t in T), name="R7")
@@ -110,7 +110,7 @@ m.update()
 
 # FUNCIÓN OBJETIVO
 
-f_objetivo = (quicksum(quicksum(x[v, t] * k * (quicksum(i[v, c, t] * o for c in C)) + W for t in T) * rho for v in V))
+f_objetivo = (quicksum(quicksum(x[v, t] * k[t] * (quicksum(i[v, c, t] * o[c] for c in C)) + W[v] for t in T) * rho[v] for v in V))
 m.setObjective(f_objetivo, GRB.MINIMIZE)
 m.Params.timeLimit = 1200
 
