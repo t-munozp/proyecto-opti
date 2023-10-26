@@ -27,8 +27,17 @@ M = {1: 300, 2: 300, 3: 300, 4: 550, 5: 500, 6: 1000, 7: 1000}
 # Peso (en kg) del vehículo v
 W = {1: 1000, 2: 1000, 3: 1000, 4: 1750, 5: 1500, 6: 3000, 7: 3000}
 
-# Precio de conductor de vehículo v en trayecto t
-omega = {1: 123213, 2: 1238974, 3: 30000, 4: 1234586, 5: 8912673, 6: 78632, 7: 91823}
+# Precio que cobra un conductor por conducir un camión 8 horas
+omega = 29536
+
+# Precio que cobra un conductor por conducir un bus por 8 horas
+theta = 27080
+
+# Cantidad de jornadas laborales necesarias para recorrer el trayecto t en camion.
+gamma = {}
+
+# Cantidad de jornadas laborales necesarias para recorrer el trayecto t en bus.
+beta = {}
 
 # Vehículo v bencinero {0,1}
 B = {1: 0, 2: 0, 3: 1, 4: 0, 5: 1, 6: 1, 7: 0}
