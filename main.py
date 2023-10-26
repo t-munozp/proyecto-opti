@@ -10,31 +10,30 @@ H = [i for i in range(1, 4)]
 
 
 # PARAMS
-
 # TODO: editar cantidadmaxdevehiculos
 cantidadmaxdevehiculos = 800
 
 # VEHÍCULOS
 # Emisión co2 vehículo v
-rho = {}
+rho = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7}
 
 # Eficiencia vehículo v
-epsilon = {}
+epsilon = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7}
 
 # Carga máxima (en kg) vehículo v
-M = {}
+M = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7}
 
 # Peso (en kg) del vehículo v
-W = {}
+W = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7}
 
 # Precio de conductor de vehículo v en trayecto t
-omega = {}
+omega = {1: 123213, 2: 1238974, 3: 30000, 4: 1234586, 5: 8912673, 6: 78632, 7: 91823}
 
 # Vehículo v bencinero {0,1}
-B = {}
+B = {1: 0, 2: 0, 3: 1, 4: 0, 5: 1, 6: 1, 7: 0}
 
 # Vehículo v petrolero {0,1}
-D = {}
+D = {1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1}
 
 # Costo de bencina por litro
 S = 50
@@ -51,15 +50,15 @@ L = 1000
 H = 100
 
 # Peso elemento c
-o = {}
+o = {1: 50, 2: 200, 3: 30, 4: 1000, 5: 800, 6: 10}
 
 # Peso persona h
-p = {}
+p = {1: 50, 2: 60, 3: 70, 4: 80}
 
 
 # OTROS
 # Kilómetros en trayecto t
-k = {}
+k = {1: 100, 2: 200, 3: 300, 4: 350, 5: 400, 6: 140, 7: 240, 8: 320, 9: 500, 10: 800}
 
 # Presupuesto transporte
 T = 50000000
