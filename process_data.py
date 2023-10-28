@@ -89,6 +89,8 @@ def vehiculos():
             elif (filas != []):
                 _, _, rho, epsilon, m, b, d, y, z = filas
                 Rho[n] = int(rho)
+                if float(epsilon) == 0:
+                    epsilon = 0.0000000001
                 Epsilon[n] = float(epsilon)
                 M[n] = int(m)
                 B[n] = int(b)
