@@ -2,6 +2,12 @@ import csv
 from os import path
 
 
+def obtener_longitud(data):
+    longitud = len(data)
+    lista = [i for i in range(1, longitud)]
+    return lista
+
+
 def distancias():
     ruta_distancias = path.join("datos", "Distancias.csv")
     diccionario = {}
@@ -76,6 +82,7 @@ def vehiculos():
     with open(ruta_distancias, 'r') as archivo:
         data = csv.reader(archivo)
         fila = 0
+        trayectos = 0
         for n, filas in enumerate(data):
             if fila == 0:
                 fila += 1
@@ -87,8 +94,9 @@ def vehiculos():
                 B[n] = int(b)
                 D[n] = int(d)
                 Y[n] = int(y)
-                Z[n] = int(z[0:-1])
-    return Rho, Epsilon, M, B, D, Y, Z
+                Z[n] = int(z)
+                trayectos = n
+    return Rho, Epsilon, M, B, D, Y, Z, trayectos
 
 
 def webada2():

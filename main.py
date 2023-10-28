@@ -5,10 +5,11 @@ m = Model()
 m.setParam("TimeLimit", 60)
 
 # ÍNDICES
-C = [i for i in range(1, 7)]
-V = [i for i in range(1, 8)]
-T = [i for i in range(1, 11)]
-H = [i for i in range(1, 5)]
+# REDEFINIDOS MÁS ADELANTE
+# C = [i for i in range(1, 7)]
+# V = [i for i in range(1, 8)]
+# T = [i for i in range(1, 11)]
+# H = [i for i in range(1, 5)]
 
 
 # PARAMS
@@ -17,7 +18,8 @@ cantidadmaxdevehiculos = 7
 
 # VEHÍCULOS
 # Emisión co2 vehículo v
-rho, epsilon, M, B, D, Y, Z = vehiculos()
+rho, epsilon, M, B, D, Y, Z, aux = vehiculos()
+V = [i for i in range(1, aux)]
 
 
 # Carga máxima (en kg) vehículo v
@@ -35,6 +37,7 @@ theta = 27080
 # Cantidad de jornadas laborales necesarias para recorrer el trayecto t en bus.
 # Cantidad de jornadas laborales necesarias para recorrer el trayecto t en camion.
 beta, gamma = jornadas()
+T = list(beta.keys())
 
 # Vehículo v bencinero {0,1}
 
@@ -55,14 +58,17 @@ R = 1200
 
 # Peso elemento c
 o = elementos()
+C = obtener_longitud(o)
 
 # Peso persona h
 p = personas()
+H = obtener_longitud(p)
 
 
 # OTROS
 # Kilómetros en trayecto t
 k = distancias()
+
 
 # Presupuesto transporte
 tau = 50000000
