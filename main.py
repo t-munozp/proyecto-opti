@@ -39,10 +39,10 @@ T = list(beta.keys())
 
 
 # precio que tiene que arrendar el vehiculo v por el trayecto t
-U = {}
+u = {}
 for t in T:
     for v in V:
-        U[t, v] = randint(1, 1000000)
+        u[t, v] = randint(1, 1000000)
 
 # Vehículo v bencinero {0,1}
 
@@ -108,7 +108,7 @@ m.addConstrs((0.5 * M[v] <= quicksum(g[h, v, t] * p[h] for h in H) +
 
 # Los costos de transporte del tour no deben superar el presupuesto para transporte
 m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * (1/epsilon[v])
-            * (S * B[v] + R * D[v]) + quicksum(x[v, t] * U[v, t] for t in T) for v in V) <= tau), name="R4")
+            * (S * B[v] + R * D[v]) + quicksum(x[v, t] * u[v, t] for t in T) for v in V) <= tau), name="R4")
 
 # Los costos de sueldos no deben superar el presupuesto de salario
 m.addConstr((quicksum(quicksum(x[v, t]*omega
