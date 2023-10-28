@@ -1,5 +1,6 @@
 from gurobipy import GRB, Model, quicksum
 from process_data import *
+from random import randint
 
 m = Model()
 m.setParam("TimeLimit", 60)
@@ -25,9 +26,6 @@ V = [i for i in range(1, aux)]
 # Carga máxima (en kg) vehículo v
 
 
-# Peso (en kg) del vehículo v
-W = {1: 1000, 2: 1000, 3: 1000, 4: 1750, 5: 1500, 6: 3000, 7: 3000}
-
 # Precio que cobra un conductor por conducir un camión 8 horas
 omega = 295368
 
@@ -38,6 +36,13 @@ theta = 27080
 # Cantidad de jornadas laborales necesarias para recorrer el trayecto t en camion.
 beta, gamma = jornadas()
 T = list(beta.keys())
+
+
+# precio que tiene que arrendar el vehiculo v por el trayecto t
+U = {}
+for t in T:
+    for v in V:
+        U[t, v] = randint(1, 1000000)
 
 # Vehículo v bencinero {0,1}
 
@@ -103,15 +108,15 @@ m.addConstrs((0.5 * M[v] <= quicksum(g[h, v, t] * p[h] for h in H) +
 
 # Los costos de transporte del tour no deben superar el presupuesto para transporte
 m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * (1/epsilon[v])
-            * (S * B[v] + R * D[v]) for v in V) <= tau), name="R4")
+            * (S * B[v] + R * D[v]) + quicksum(x[v, t] * U[v, t] for t in T) for v in V) <= tau), name="R4")
 
 # Los costos de sueldos no deben superar el presupuesto de salario
-m.addConstr((quicksum(quicksum(x[v, t]*omega[v]
+m.addConstr((quicksum(quicksum(x[v, t]*omega
             for t in T) for v in V) <= Q), name="R5")
 
 # Los gastos totales deben ser menores o igules al presupuesto final
-m.addConstr((quicksum(quicksum(x[v, t]*omega[v] for t in T)for v in V) + quicksum(quicksum(
-    x[v, t]*k[t] for t in T) * (1/epsilon[v]) * (S * B[v] + R * D[v]) for v in V) <= U), name="R6")
+m.addConstr(quicksum(quicksum(
+    (x[v, t] * (omega * Y[t] * gamma[t] + theta * Z[t] * beta[t])) for t in T) for v in V), name="R6")
 
 # En cada trayecto se deben transportar todos los elementos
 m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
@@ -130,8 +135,8 @@ m.update()
 
 # FUNCIÓN OBJETIVO
 
-f_objetivo = (quicksum(quicksum(x[v, t] * k[t] * (quicksum(i[v, c, t] * o[c]
-              for c in C)) + W[v] for t in T) * rho[v] for v in V))
+f_objetivo = quicksum((quicksum((k[t]*quicksum(i[v, c, t] * o[c]
+                      for c in C) * rho[v] + 1/epsilon[v]) for t in T)) for v in V)
 m.setObjective(f_objetivo, GRB.MINIMIZE)
 
 m.optimize()
