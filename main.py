@@ -115,8 +115,8 @@ m.addConstr((quicksum(quicksum(x[v, t]*omega
             for t in T) for v in V) <= Q), name="R5")
 
 # Los gastos totales deben ser menores o igules al presupuesto final
-m.addConstr(quicksum(quicksum(
-    (x[v, t] * (omega * Y[t] * gamma[t] + theta * Z[t] * beta[t])) for t in T) for v in V), name="R6")
+m.addConstr(quicksum(quicksum((x[v, t] * (omega * Y[t] * gamma[t] + theta * Z[t] * beta[t])) for t in T)
+            for v in V) + quicksum(quicksum(x[v, t] * k[t] for t in T) * 1/epsilon[v]*(S*B[v] + R*D[v]) for v in V), name="R6")
 
 # En cada trayecto se deben transportar todos los elementos
 m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
