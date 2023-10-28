@@ -20,7 +20,7 @@ cantidadmaxdevehiculos = 7
 # VEHÍCULOS
 # Emisión co2 vehículo v
 rho, epsilon, M, B, D, Y, Z, aux = vehiculos()
-V = [i for i in range(1, aux)]
+V = [i for i in range(1, aux + 1)]
 
 
 # Carga máxima (en kg) vehículo v
@@ -37,12 +37,11 @@ theta = 27080
 beta, gamma = jornadas()
 T = list(beta.keys())
 
-
 # precio que tiene que arrendar el vehiculo v por el trayecto t
 u = {}
 for t in T:
     for v in V:
-        u[t, v] = randint(1, 1000000)
+        u[v, t] = randint(1, 1000000)
 
 # Vehículo v bencinero {0,1}
 
@@ -115,8 +114,8 @@ m.addConstr((quicksum(quicksum(x[v, t]*omega
             for t in T) for v in V) <= Q), name="R5")
 
 # Los gastos totales deben ser menores o igules al presupuesto final
-m.addConstr(quicksum(quicksum((x[v, t] * (omega * Y[t] * gamma[t] + theta * Z[t] * beta[t])) for t in T)
-            for v in V) + quicksum(quicksum(x[v, t] * k[t] for t in T) * 1/epsilon[v]*(S*B[v] + R*D[v]) for v in V), name="R6")
+m.addConstr(quicksum(quicksum(x[v, t] * ((omega * Y[t] * gamma[t]) + (theta * Z[t] * beta[t])) for t in T) for v in V) + quicksum(
+    quicksum(x[v, t] * k[t] for t in T) * (1/epsilon[v])*(S*B[v] + R * D[v]) * (quicksum(x[v, t] * u[v, t] for t in T)) for v in V) <= U, name="R6")
 
 # En cada trayecto se deben transportar todos los elementos
 m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
