@@ -57,7 +57,7 @@ Q = 60000000
 U = 100000000
 
 # VARIABLES
-x = m.addVars(V, T, vtype=GRB.BINARY, name="x_vt")
+x = m.addVars(V, T, vtype=GRB.BINARY, name='x_vt')
 g = m.addVars(H, V, T, vtype=GRB.BINARY, name="g_hvt")
 i = m.addVars(V, C, T, vtype=GRB.BINARY, name="i_vct")
 
@@ -66,42 +66,79 @@ m.update()
 
 # RESTRICCIONES
 # El peso de la carga del vehículo v no debe superar el máximo permitido
-m.addConstrs((quicksum(g[h,v,t] * p[h] for h in H) + quicksum(i[v,c,t] * o[c] for c in C) <= M[v] for v in V for t in T), name="R1")
+m.addConstrs((quicksum(g[h, v, t] * p[h] for h in H) + quicksum(i[v, c, t] * o[c]
+             for c in C) <= M[v] * x[v, t] for v in V for t in T), name="R1")
 
 # La cantidad de vehículos v usados en el trayecto t no debe superar la cantidad disponible de vehículos
-m.addConstrs((quicksum(x[v,t] for v in V) <= len(V) for t in T), name="R2") #cantidadmaxdevehiculos HAY QUE DEF
+m.addConstrs((quicksum(x[v, t] for v in V) <= len(V) for t in T), name="R2")
+m.addConstrs((quicksum(x[v, t] for v in V) >= 50 for t in T), name="R3")
+
 
 # El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
-m.addConstrs((0.5 * M[v] <= quicksum(g[h,v,t] * p[h] for h in H) + quicksum(i[v,c,t] * o[c] for c in C) for v in V for t in T), name="R3")
+m.addConstrs((0.5 * M[v] <= quicksum(g[h, v, t] * p[h] for h in H) +
+             quicksum(i[v, c, t] * o[c] for c in C) for v in V for t in T), name="R4")
 
 # Los costos de transporte del tour no deben superar el presupuesto para transporte
-m.addConstr((quicksum(quicksum(x[v,t]*k[t] for t in T) * (1/epsilon[v]) * (S * B[v] + R * D[v]) for v in V) <= tau), name="R4")
+m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * (1/epsilon[v])
+            * (S * B[v] + R * D[v]) for v in V) <= tau), name="R5")
 
 # Los costos de sueldos no deben superar el presupuesto de salario
-m.addConstr((quicksum(quicksum(x[v,t]*omega for t in T) for v in V) <= Q), name="R5")
+m.addConstr((quicksum(quicksum(x[v, t]*omega for t in T)
+            for v in V) <= Q), name="R6")
 
 # Los gastos totales deben ser menores o igules al presupuesto final
-m.addConstr((quicksum(quicksum(x[v,t]*omega for t in T)for v in V) + quicksum(quicksum(x[v,t]*k[t] for t in T) * (1/epsilon[v]) * (S * B[v] + R * D[v]) for v in V) <= U), name="R6")
+m.addConstr((quicksum(quicksum(x[v, t]*omega for t in T)for v in V) + quicksum(quicksum(
+    x[v, t]*k[t] for t in T) * (1/epsilon[v]) * (S * B[v] + R * D[v]) for v in V) <= U), name="R7")
 
-# En cada trayecto se deben transportar todos los elementos 
-m.addConstrs((quicksum(quicksum(i[v,c,t] for c in C) for v in V) <= len(C) for t in T), name="R7")
-m.addConstrs((quicksum(quicksum(i[v,c,t] for c in C) for v in V) >= len(C) for t in T), name="R")
- 
+# En cada trayecto se deben transportar todos los elementos
+m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
+             for v in V) >= len(C) for t in T), name="R8")
+# m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
+#              for v in V) <= len(C) for t in T), name="R9")
+
+# Solo se pueden transportar personas en buses y elementos en camiones
+m.addConstrs((i[v, c, t] <= (1 - Z[v])
+             for t in T for v in V for c in C), name="R10")
+m.addConstrs((g[v, c, t] <= (1 - Y[v])
+             for t in T for v in V for c in C), name="R11")
+
 # En cada trayecto se deben transportar todas las personas
-# m.addConstrs((quicksum(quicksum(g[h,v,t] for h in H) for v in V) <= len(H) for t in T), name="R9")
-# m.addConstrs((quicksum(quicksum(g[h,v,t] for h in H) for v in V) >= len(H) for t in T), name="R10")
+m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
+             for v in V) >= len(H) for t in T), name="R12")
+# m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
+#              for v in V) <= len(H) for t in T), name="R13")
 
 
 m.update()
 
 # FUNCIÓN OBJETIVO
 
-f_objetivo = (quicksum(quicksum(x[v, t] * k[t] * (quicksum(i[v, c, t] * o[c] for c in C)) for t in T) * rho[v] for v in V))
-m.setObjective(f_objetivo, GRB.MAXIMIZE)
+f_objetivo = (quicksum(quicksum(
+    x[v, t] * k[t] * (quicksum(i[v, c, t] * o[c] for c in C)) for t in T) * rho[v] + 1/epsilon[v] for v in V))
+m.setObjective(f_objetivo, GRB.MINIMIZE)
 
 m.optimize()
 m.printStats()
 
 
-
 print(f"El valor objetivo de emisiones de CO2 es de: {m.ObjVal}")
+
+autos = {}
+for variable in m.getVars():
+    if 'x_vt' in variable.varName:
+        # print(f'{variable.varName}: {variable.x}')
+        awa = str(variable.varName)
+        inicio = awa.index("[")
+        final = awa.index("]")
+        cosa = awa[inicio+1:final]
+        otra_cosa = cosa.split(",")
+        autos[otra_cosa[0]] = variable.x
+
+print(autos)
+
+cuenta = 0
+for i in autos.values():
+    if i == 1.0:
+        cuenta += 1
+
+print(cuenta)
