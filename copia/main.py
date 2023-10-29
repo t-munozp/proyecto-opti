@@ -3,7 +3,7 @@ from process_data import *
 from random import randint
 
 m = Model()
-m.setParam("TimeLimit", 60)
+m.setParam("TimeLimit", 300)
 
 # PARAMS
 
@@ -35,26 +35,30 @@ R = 1200
 o = elementos()
 # Cantidad de elementos a cargar (conjunto C)
 C = obtener_longitud(o)
+print(C)
 
 
 # Peso persona h
 p = personas()
 # Cantidad de personas (conjunto H)
 H = obtener_longitud(p)
+print(H)
 
 
 # OTROS
 # Kilómetros en trayecto t
 k = distancias()
 
-# Presupuesto transporte
-tau = 50000000
-
-# Presupuesto salarios
-Q = 60000000
 
 # Prespuesto total
-U = 100000000
+U = 10000000000000000000
+
+# Presupuesto transporte
+tau = U*0.7
+
+# Presupuesto salarios
+Q = U*0.3
+
 
 # VARIABLES
 x = m.addVars(V, T, vtype=GRB.BINARY, name='x_vt')
@@ -71,7 +75,7 @@ m.addConstrs((quicksum(g[h, v, t] * p[h] for h in H) + quicksum(i[v, c, t] * o[c
 
 # La cantidad de vehículos v usados en el trayecto t no debe superar la cantidad disponible de vehículos
 m.addConstrs((quicksum(x[v, t] for v in V) <= len(V) for t in T), name="R2")
-m.addConstrs((quicksum(x[v, t] for v in V) >= 50 for t in T), name="R3")
+# m.addConstrs((quicksum(x[v, t] for v in V) >= 50 for t in T), name="R3")
 
 
 # El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
@@ -99,14 +103,14 @@ m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
 # Solo se pueden transportar personas en buses y elementos en camiones
 m.addConstrs((i[v, c, t] <= (1 - Z[v])
              for t in T for v in V for c in C), name="R10")
-m.addConstrs((g[v, c, t] <= (1 - Y[v])
-             for t in T for v in V for c in C), name="R11")
+m.addConstrs((g[h, v, t] <= (1 - Y[v])
+             for t in T for v in V for h in H), name="R11")
 
 # En cada trayecto se deben transportar todas las personas
-m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
-             for v in V) >= len(H) for t in T), name="R12")
 # m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
-#              for v in V) <= len(H) for t in T), name="R13")
+#              for v in V) >= len(H) for t in T), name="R12")
+m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
+             for v in V) <= len(H) for t in T), name="R13")
 
 
 m.update()
@@ -125,7 +129,7 @@ print(f"El valor objetivo de emisiones de CO2 es de: {m.ObjVal}")
 
 autos = {}
 for variable in m.getVars():
-    if 'x_vt' in variable.varName:
+    if 'g_hvt' in variable.varName:
         # print(f'{variable.varName}: {variable.x}')
         awa = str(variable.varName)
         inicio = awa.index("[")
@@ -133,8 +137,6 @@ for variable in m.getVars():
         cosa = awa[inicio+1:final]
         otra_cosa = cosa.split(",")
         autos[otra_cosa[0]] = variable.x
-
-print(autos)
 
 cuenta = 0
 for i in autos.values():
