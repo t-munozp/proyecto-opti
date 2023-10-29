@@ -4,7 +4,7 @@ from os import path
 
 def obtener_longitud(data):
     longitud = len(data)
-    lista = [i for i in range(1, longitud)]
+    lista = [i for i in range(1, longitud + 1)]
     return lista
 
 
@@ -66,6 +66,7 @@ def elementos():
             elif (filas != []):
                 pesos[n] = float(filas[1])
     return pesos
+
 def vehiculos():
     ruta_distancias = path.join("datos", "Vehiculos.csv")
     Rho = {}
@@ -77,7 +78,7 @@ def vehiculos():
     Z = {}
 
     with open(ruta_distancias, 'r') as archivo:
-        data = csv.reader(archivo)
+        data = csv.reader(archivo, delimiter=';')
         fila = 0
         numero_auto = 0
         for n, filas in enumerate(data):
@@ -85,7 +86,7 @@ def vehiculos():
                 fila += 1
             elif (filas != []):
                 _, _, rho, epsilon, m, b, d, y, z = filas
-                Rho[n] = int(rho)
+                Rho[n] = float(rho)
                 if float(epsilon) == 0:
                     epsilon = 0.0000000001
                 Epsilon[n] = float(epsilon)

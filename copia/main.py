@@ -122,6 +122,12 @@ f_objetivo = (quicksum(quicksum(
 m.setObjective(f_objetivo, GRB.MINIMIZE)
 
 m.optimize()
+if m.status == GRB.INFEASIBLE:
+    print("El modelo es infactible")
+    print("Obteniendo IIS...")
+    m.computeIIS()
+    m.write("iis.ilp")
+    
 m.printStats()
 
 
