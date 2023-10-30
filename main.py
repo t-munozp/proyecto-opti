@@ -55,16 +55,13 @@ H = obtener_longitud(p)
 k = distancias()
 
 # Presupuesto transporte
-# original: 52566960
-tau = 5256696000000000000000000
+tau = 526944260000000
 
 # Presupuesto salarios
-# original: 600000000
-Q = 6000000000000000000000
+Q = 6000000000000000
 
 # Prespuesto total
-# original: 100000000
-U = 1000000000000000000000
+U = 1000000000000
 
 # VARIABLES
 x = m.addVars(V, T, vtype=GRB.BINARY, name="x_vt")
@@ -107,10 +104,10 @@ m.addConstrs((quicksum(quicksum(i[v, c, t] for c in C)
              for v in V) >= len(C) for t in T), name="R9")
 
 # # En cada trayecto se deben transportar todas las personas
-# m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
-#              for v in V) <= len(H) for t in T), name="R10")
-# m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
-#              for v in V) >= len(H) for t in T), name="R11")
+m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
+             for v in V) <= len(H) for t in T), name="R10")
+m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)
+             for v in V) >= len(H) for t in T), name="R11")
 
 
 # m.addConstrs((i[v, c, t] <= (1 - Z[v])
@@ -143,9 +140,9 @@ if m.status == GRB.INFEASIBLE:
 m.printStats()
 
 print(
-    f'El costo total usado en transporte fue: {quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * (S * B[v]) for v in V).getValue()} en bencina')
+    f'El costo total usado en transporte fue: {quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * (S * B[v]) for v in V).getValue()}[CLP] en bencina')
 print(
-    f'El costo total usado en transporte fue: {quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * (R * D[v]) for v in V).getValue()} en petroleo')
+    f'El costo total usado en transporte fue: {quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * (R * D[v]) for v in V).getValue()}[CLP] en petroleo')
 
 # for t in T:
 #     cantidad_elementos = quicksum(quicksum(i[v, c, t] for c in C) for v in V).getValue()
@@ -153,32 +150,3 @@ print(
 
 
 print(f"El valor objetivo de emisiones de CO2 es de: {m.ObjVal/1000} kg")
-
-
-autos = {}
-cosas = {}
-for variable in m.getVars():
-    if 'x_vt' in variable.varName:
-        # print(f'{variable.varName}: {variable.X}')
-        awa = str(variable.varName)
-        inicio = awa.index("[")
-        final = awa.index("]")
-        cosa = awa[inicio+1:final]
-        otra_cosa = cosa.split(",")
-        autos[otra_cosa[0]] = variable.x
-    if 'i_vct' in variable.varName:
-        # print(f'{variable.varName}: {variable.X}')
-        awa = str(variable.varName)
-        inicio = awa.index("[")
-        final = awa.index("]")
-        cosa = awa[inicio+1:final]
-        otra_cosa = cosa.split(",")
-        cosas[otra_cosa[0], otra_cosa[1]] = variable.x
-
-
-cuenta = 0
-for i in autos.values():
-    if i == 1.0:
-        cuenta += 1
-
-print(cuenta)
