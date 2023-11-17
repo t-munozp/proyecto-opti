@@ -63,6 +63,9 @@ Q = 6000000000000000
 # Prespuesto total
 U = 1000000000000
 
+# Big M
+BIGM = 10000000000000000000000000
+
 # VARIABLES
 x = m.addVars(V, T, vtype=GRB.BINARY, name="x_vt")
 g = m.addVars(H, V, T, vtype=GRB.BINARY, name="g_hvt")
@@ -81,8 +84,7 @@ m.addConstrs((quicksum(x[v, t] for v in V) <= len(V) for t in T), name="R2")
 m.addConstrs((quicksum(x[v, t] for v in V) >= 1 for t in T), name="R3")
 
 # # El peso mínimo de la carga del vehículo v tiene que ser mayor o igual al 50% de la carga máxima de este
-m.addConstrs((0.5 * M[v] <= quicksum(g[h, v, t] * p[h] for h in H) +
-              quicksum(i[v, c, t] * o[c] for c in C) for v in V for t in T), name="R4")
+m.addConstrs((0.5 * M[v] * x[v, t] - BIGM * (1 - x[v, t]) <= quicksum(g[h, v, t] * p[h] for h in H) + quicksum(i[v, c, t] * o[c] for c in C) for v in V for t in T), name="R4")
 
 # # Los costos de transporte del tour no deben superar el presupuesto para transporte
 m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * (
@@ -128,6 +130,7 @@ m.update()
 f_objetivo = quicksum(quicksum(k[t] * x[v, t] for t in T) * rho[v] for v in V)
 m.setObjective(f_objetivo, GRB.MINIMIZE)
 
+m.setParam("Crossover", 0)
 m.optimize()
 
 
