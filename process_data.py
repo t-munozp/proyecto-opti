@@ -115,3 +115,13 @@ def precios():
                         precio[n, t] = int(val)
 
     return precio
+
+def suma(lista1, lista2):
+    sm = 0
+    for i in lista1.values():
+        sm += i
+    
+    for j in lista2.values():
+        sm += j
+    
+    return sm
