@@ -77,6 +77,8 @@ def vehiculos():
     disel = {}
     tipo_camion = {}
     tipo_bus = {}
+    Y = {}
+    Z = {}
 
     with open(ruta_distancias, 'r') as archivo:
         data = csv.reader(archivo, delimiter=';')
@@ -88,23 +90,24 @@ def vehiculos():
             if fila == 0:
                 fila += 1
             elif (filas != []):
-                type, _, rho, epsilon, m, B, D, _, _ = filas
+                type, _, rho, epsilon, m, B, D, y, z = filas
                 if type == "Camion 1" or type == "Camion 2":
-                    Epsilon[fila] = float(epsilon)
-                    Rho[fila] = float(epsilon)
-                    M[fila] = int(m)
+                    Epsilon[fila] = float(epsilon) + 0.001
                     Rho[fila] = float(rho)
+                    M[fila] = int(m)
                     tipo_camion[fila] = 1
                     tipo_bus[fila] = 0
                 else:
-                    Epsilon[fila] = float(epsilon)
+                    Epsilon[fila] = float(epsilon) + 0.001
                     M[fila] = int(m)
                     Rho[fila] = float(rho)
                     tipo_camion[fila] = 0
                     tipo_bus[fila] = 1
+                Y[fila] = int(y)
+                Z[fila] = int(z)
                 bencina[fila] = B
                 disel[fila] = D
-    return Rho, Epsilon, M, bencina, disel, tipo_camion, tipo_bus, fila
+    return Rho, Epsilon, M, bencina, disel, tipo_camion, tipo_bus, fila, Y, Z
 
 
 def precios():

@@ -1,6 +1,7 @@
 from gurobipy import GRB, Model, quicksum
 from process_data import *
 from random import randint
+import numpy as np
 
 m = Model()
 m.setParam("TimeLimit", 60*5)
@@ -8,7 +9,7 @@ m.setParam("TimeLimit", 60*5)
 # PARAMS
 
 # VEHÍCULOS
-rho, epsilon, M, B, D, tipo_camion, tipo_bus, aux = vehiculos()
+rho, epsilon, M, B, D, tipo_camion, tipo_bus, aux, Y, Z = vehiculos()
 omega = 295368
 theta = 27080
 beta, gamma = jornadas()
@@ -76,28 +77,53 @@ i[c, v, t] = {1, 0} 1 si el elemento c se transporta en el vehiculo v para el tr
 
 
 m.update()
-
 # RESTRICCIONES
 m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
              for c in C) <= M[v] * tipo_camion[v] for v in V for t in T), name="CargaMaximaCamion")
 m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
-             for c in C) >= M[v] * 0.5 * tipo_camion[v]for v in V for t in T), name="CargaMinimaCamion")
+             for c in C) >= M[v] * 0.5 * tipo_camion[v] for v in V for t in T), name="CargaMinimaCamion")
 
 m.addConstrs((quicksum(x[v, t] for v in V) <= len(V)
              for t in T), name="MaxVehiculos")
-m.addConstrs((quicksum(x[v, t] for v in V) >= 1
-             for t in T), name="MinVehiculos")
+m.addConstrs((quicksum(x[v, t] * tipo_camion[v] for v in V) >= 1
+             for t in T), name="MinVehiculosCamion")
+m.addConstrs((quicksum(x[v, t] * tipo_bus[v] for v in V) >= 1
+             for t in T), name="MinVehiculosBus")
 
 
-m.addConstrs((quicksum(quicksum(i[c, v, t] for c in C) * tipo_camion[v] for v in V) <= len(
-    C) for t in T), name="TotalElementos1")
-m.addConstrs((quicksum(quicksum(i[c, v, t] for c in C) * tipo_camion[v] for v in V) >= len(
-    C) for t in T), name="TotalElementos2")
+m.addConstrs((quicksum(quicksum(i[c, v, t] for c in C) * tipo_camion[v] for v in V) == len(
+    C) for t in T), name="TotalElementos")
+m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H) * tipo_bus[v] for v in V) == len(
+    H) for t in T), name="TotalPersonas")
 
-m.addConstrs((quicksum(g[h, v, t] * tipo_bus[v] for h in H for v in V) <= len(
-    H) for t in T), name="TotalPersonas1")
-m.addConstrs((quicksum(g[h, v, t] * tipo_bus[v] for h in H for v in V) >= len(
-    H) for t in T), name="TotalPersonas2")
+# Agrega restricciones para que las personas no se transporten en camiones
+for h in H:
+    for v in V:
+        for t in T:
+            if tipo_camion[v] == 1:
+                m.addConstr(g[h, v, t] == 0)
+
+for c in C:
+    for v in V:
+        for t in T:
+            if tipo_bus[v] == 1:
+                m.addConstr(i[c, v, t] == 0)
+
+# Las personas deben compartir vehículos, considerando las limitaciones de este
+m.addConstrs((quicksum(g[h, v, t] * p[h] for h in H) <= M[v]
+             * tipo_bus[v] for v in V for t in T), name="CapacidadBus")
+
+# Cada persona solo puede ser asignada a un vehículo
+m.addConstrs((quicksum(g[h, v, t] for v in V) <=
+             1 for h in H for t in T), name="AsignacionUnica")
+
+# PRESUPUESTO
+
+
+# Restricción de presupuesto transporte
+m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
+             quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R <= tau), name="PresupuestoTransporte")
+
 
 
 m.update()
@@ -115,11 +141,11 @@ m.optimize()
 if m.status == GRB.INFEASIBLE:
     print("El modelo es infactible")
     print("Obteniendo IIS...")
-    m.computeIIS()
-    m.write("iis.ilp")
+    # m.computeIIS()
+    # m.write("iis.ilp")
 
 # m.printStats()
-
+print()
 
 print('El costo total usado en transporte fue: ', end="")
 print(
@@ -136,15 +162,10 @@ print(
 print(
     f"\n-------------\n------------------\nEl valor objetivo de emisiones de CO2 es de: {m.ObjVal/1000} kg\n------------------\n-------------\n")
 
-print((quicksum(x[v, 1] for v in V)).getValue())
-print(((quicksum(quicksum(i[c, v, 1] * tipo_camion[v]
-      for c in C) for v in V))).getValue())
-print(((quicksum(quicksum(g[h, v, 1] * tipo_bus[v]
-      for h in H) for v in V))).getValue())
 
-print()
-print(len(T))
-print(len(V))
-print(len(C))
-print(len(H))
-print()
+# imprime en que bus se transporta cada persona para el trayecto 1.
+for h in H:
+    for v in V:
+        if g[h, v, 1].X == 1:
+            print(
+                f'La persona {h} se transporta en el vehiculo {v} para el trayecto 1')
