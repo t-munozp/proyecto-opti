@@ -73,7 +73,8 @@ def vehiculos():
     Rho = {}
     Epsilon = {}
     M = {}
-    combustible = {}
+    bencina = {}
+    disel = {}
     tipo_camion = {}
     tipo_bus = {}
 
@@ -89,6 +90,7 @@ def vehiculos():
             elif (filas != []):
                 type, _, rho, epsilon, m, B, D, _, _ = filas
                 if type == "Camion 1" or type == "Camion 2":
+                    Epsilon[fila] = float(epsilon)
                     Rho[fila] = float(epsilon)
                     M[fila] = int(m)
                     Rho[fila] = float(rho)
@@ -100,8 +102,9 @@ def vehiculos():
                     Rho[fila] = float(rho)
                     tipo_camion[fila] = 0
                     tipo_bus[fila] = 1
-                combustible[fila] = B
-    return Rho, Epsilon, M, combustible, tipo_camion, tipo_bus, fila
+                bencina[fila] = B
+                disel[fila] = D
+    return Rho, Epsilon, M, bencina, disel, tipo_camion, tipo_bus, fila
 
 
 def precios():
@@ -116,6 +119,7 @@ def precios():
                 fila += 1
             elif (filas != []):
                 for t, val in enumerate(filas):
+
                     if t != 0:
                         precio[(n, t)] = int(float(val))
     return precio
