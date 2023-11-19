@@ -83,11 +83,6 @@ m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
 m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
              for c in C) >= M[v] * 0.5 * tipo_camion[v]for v in V for t in T), name="CargaMinimaCamion")
 
-# m.addConstrs((quicksum(x[v, t] * g[h, v, t] * p[h] * tipo_bus[v]
-#              for h in H) <= M[v] for v in V for t in T), name="CargaMaximaBus")
-# m.addConstrs((quicksum(x[v, t] * g[h, v, t] * p[h] * tipo_bus[v]
-#              for h in H) >= M[v] * 0.5 * tipo_bus[v] for v in V for t in T), name="CargaMinimaBus")
-
 m.addConstrs((quicksum(x[v, t] for v in V) <= len(V)
              for t in T), name="MaxVehiculos")
 m.addConstrs((quicksum(x[v, t] for v in V) >= 1
@@ -99,43 +94,16 @@ m.addConstrs((quicksum(quicksum(i[c, v, t] for c in C) * tipo_camion[v] for v in
 m.addConstrs((quicksum(quicksum(i[c, v, t] for c in C) * tipo_camion[v] for v in V) >= len(
     C) for t in T), name="TotalElementos2")
 
-# m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H) for v in V) <= len(
-#     H) for t in T), name="TotalPersonas1")
-# m.addConstrs((quicksum(quicksum(g[h, v, t] for h in H)for v in V) >= len(
-#     H) for t in T), name="TotalPersonas2")
-
-
-m.addConstrs((quicksum(g[h, v, t] * p[h] for h in H) <= M[v]
-              for v in V for t in T), name="CapacidadPeso")
-
-# Restricción: Relación entre las variables g y x
-m.addConstrs((quicksum(g[h, v, t] for h in H) <= x[v, t] * tipo_bus[v]
-              for v in V for t in T), name="RelacionG_X")
-
-# Restricción: Cada persona puede estar en el mismo vehículo que otra u otras (sin superar el peso)
-m.addConstrs((quicksum(g[h, v, t] for v in V for t in T) <= 1
-              for h in H), name="UnaPersonaPorVehiculo")
-
-
-# asda
-# Restricción: Cada objeto debe ser asignado a exactamente un vehículo en cada trayecto
-# m.addConstrs((quicksum(i[c, v, t] for v in V) == 1
-#               for c in C for t in T), name="AsignacionObjeto")
-
-# # Restricción: Capacidad de peso por vehículo y trayecto (considerando solo objetos)
-# m.addConstrs((quicksum(i[c, v, t] * o[c] for c in C) <= M[v]
-#               for v in V for t in T), name="CapacidadPesoObjetos")
-
-# # Restricción: Relación entre las variables i y x (considerando el tipo de camión)
-# m.addConstrs((quicksum(i[c, v, t] for c in C) <= x[v, t] * tipo_camion[v]
-#               for v in V for t in T), name="RelacionI_X")
+m.addConstrs((quicksum(g[h, v, t] * tipo_bus[v] for h in H for v in V) <= len(
+    H) for t in T), name="TotalPersonas1")
+m.addConstrs((quicksum(g[h, v, t] * tipo_bus[v] for h in H for v in V) >= len(
+    H) for t in T), name="TotalPersonas2")
 
 
 m.update()
 
 # FUNCIÓN OBJETIVO
 
-# f_objetivo = quicksum(quicksum(k[t] * x[v, t] for t in T) * rho[v] for v in V)
 
 f_objetivo = quicksum(k[t] * quicksum(x[v, t] * rho[v] for v in V) for t in T)
 m.setObjective(f_objetivo, GRB.MINIMIZE)
