@@ -9,7 +9,7 @@ m.setParam("TimeLimit", 60*5)
 # PARAMS
 
 # VEHÍCULOS
-rho, epsilon, M, B, D, tipo_camion, tipo_bus, aux, Y, Z = vehiculos()
+rho, epsilon, M, B, D, tipo_camion, tipo_bus, aux, Y, Z, tipo = vehiculos()
 omega = 295368
 theta = 27080
 beta, gamma = jornadas()
@@ -124,7 +124,15 @@ m.addConstrs((quicksum(g[h, v, t] for v in V) <=
 m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
              quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R <= tau), name="PresupuestoTransporte")
 
+# Restricción de presupuesto salarios
+m.addConstr((quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
+             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T) <= Q), name="PresupuestoSalarios")
 
+# Restricción de presupuesto total
+m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
+             quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R +
+             quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
+             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T) <= U), name="PresupuestoTotal")
 
 m.update()
 
@@ -164,8 +172,36 @@ print(
 
 
 # imprime en que bus se transporta cada persona para el trayecto 1.
-for h in H:
+for t in T:
+    for h in H:
+        for v in V:
+            if g[h, v, t].X == 1:
+                print(
+                    f'La persona {h} se transporta en el vehiculo {v} para el trayecto {t}')
+
+cant_bus = 0
+cant_camion = 0
+for t in T:
     for v in V:
-        if g[h, v, 1].X == 1:
-            print(
-                f'La persona {h} se transporta en el vehiculo {v} para el trayecto 1')
+        val = x[v, t].X
+        if tipo_bus[v] == 1:
+            cant_bus += 1
+        else:
+            cant_camion += 1
+
+print(f'La cantidad de buses usados es: {cant_bus}')
+print(f"La cantidad de camiones usados es: {cant_camion}")
+dinero_usado = (quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
+                quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R +
+                quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
+                quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T)).getValue()
+
+print(f"El dinero usado en Total es: {dinero_usado} CLP")
+
+dinero_salarios = (quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
+                   quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T)).getValue()
+print(f"El dinero usado en salarios es: {dinero_salarios} CLP")
+
+dinero_transporte = (quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
+                     quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R).getValue()
+print(f"El dinero usado en transporte es: {dinero_transporte} CLP")
