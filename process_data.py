@@ -67,36 +67,52 @@ def elementos():
                 pesos[n] = float(filas[1])
     return pesos
 
+
 def vehiculos():
     ruta_distancias = path.join("datos", "Vehiculos.csv")
     Rho = {}
     Epsilon = {}
     M = {}
-    B = {}
-    D = {}
+    bencina = {}
+    disel = {}
+    tipo_camion = {}
+    tipo_bus = {}
     Y = {}
     Z = {}
+    tipo = {}
 
     with open(ruta_distancias, 'r') as archivo:
         data = csv.reader(archivo, delimiter=';')
         fila = 0
-        numero_auto = 0
-        for n, filas in enumerate(data):
+        numero_bus = 0
+        numero_camion = 0
+        n_total = 0
+        for fila, filas in enumerate(data):
             if fila == 0:
                 fila += 1
             elif (filas != []):
-                _, _, rho, epsilon, m, b, d, y, z = filas
-                Rho[n] = float(rho)
-                if float(epsilon) == 0:
-                    epsilon = 0.0000000001
-                Epsilon[n] = float(epsilon)
-                M[n] = int(m)
-                B[n] = int(b)
-                D[n] = int(d)
-                Y[n] = int(y)
-                Z[n] = int(z)
-                numero_auto = n
-    return Rho, Epsilon, M, B, D, Y, Z, numero_auto
+                type, _, rho, epsilon, m, B, D, y, z = filas
+                if type == "Camion 1" or type == "Camion 2":
+                    Epsilon[fila] = float(epsilon) + 0.001
+                    Rho[fila] = float(rho)
+                    M[fila] = int(m)
+                    tipo_camion[fila] = 1
+                    tipo_bus[fila] = 0
+                    if type == "Camion 1":
+                        tipo[fila] = 1
+                    else:
+                        tipo[fila] = 2
+                else:
+                    Epsilon[fila] = float(epsilon) + 0.001
+                    M[fila] = int(m)
+                    Rho[fila] = float(rho)
+                    tipo_camion[fila] = 0
+                    tipo_bus[fila] = 1
+                Y[fila] = int(y)
+                Z[fila] = int(z)
+                bencina[fila] = B
+                disel[fila] = D
+    return Rho, Epsilon, M, bencina, disel, tipo_camion, tipo_bus, fila, Y, Z, tipo
 
 
 def precios():
@@ -111,17 +127,18 @@ def precios():
                 fila += 1
             elif (filas != []):
                 for t, val in enumerate(filas):
-                    if t != 0:
-                        precio[n, t] = int(val)
 
+                    if t != 0:
+                        precio[(n, t)] = int(float(val))
     return precio
+
 
 def suma(lista1, lista2):
     sm = 0
     for i in lista1.values():
         sm += i
-    
+
     for j in lista2.values():
         sm += j
-    
+
     return sm
