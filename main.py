@@ -78,10 +78,10 @@ i[c, v, t] = {1, 0} 1 si el elemento c se transporta en el vehiculo v para el tr
 
 m.update()
 # RESTRICCIONES
-m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
-             for c in C) <= M[v] * tipo_camion[v] for v in V for t in T), name="CargaMaximaCamion")
-m.addConstrs((quicksum(x[v, t] * i[c, v, t] * o[c] * tipo_camion[v]
-             for c in C) >= M[v] * 0.5 * tipo_camion[v] for v in V for t in T), name="CargaMinimaCamion")
+m.addConstrs((quicksum(i[c, v, t] * o[c] * tipo_camion[v]
+             for c in C) <= M[v] * tipo_camion[v] * x[v, t]for v in V for t in T), name="CargaMaximaCamion")
+m.addConstrs((quicksum(i[c, v, t] * o[c] * tipo_camion[v]
+             for c in C) >= M[v] * 0.5 * tipo_camion[v] * x[v, t] for v in V for t in T), name="CargaMinimaCamion")
 
 m.addConstrs((quicksum(x[v, t] for v in V) <= len(V)
              for t in T), name="MaxVehiculos")
