@@ -45,9 +45,9 @@ p[h] = Peso de la persona h
 
 # OTROS
 k = distancias()
-tau = 526944260000000
+tau = 5269442600000000
 Q = 6000000000000000
-U = 1000000000000
+U = 100000000000000
 
 '''
 k = kilometros del trayecto t
@@ -125,14 +125,14 @@ m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for 
              quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R <= tau), name="PresupuestoTransporte")
 
 # Restricción de presupuesto salarios
-m.addConstr((quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
-             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T) <= Q), name="PresupuestoSalarios")
+m.addConstr((quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] * beta[t] for v in V) for t in T) +
+             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] * gamma[t] for v in V) for t in T) <= Q), name="PresupuestoSalarios")
 
 # Restricción de presupuesto total
 m.addConstr((quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * B[v] for v in V) * S +
              quicksum(quicksum(x[v, t]*k[t] for t in T) * epsilon[v] * D[v] for v in V) * R +
-             quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] for v in V) for t in T) +
-             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] for v in V) for t in T) <= U), name="PresupuestoTotal")
+             quicksum(quicksum(g[h, v, t] * theta * tipo_bus[v] * beta[t] for v in V) for t in T) +
+             quicksum(quicksum(i[c, v, t] * omega * tipo_camion[v] * gamma[t] for v in V) for t in T) <= U), name="PresupuestoTotal")
 
 m.update()
 
